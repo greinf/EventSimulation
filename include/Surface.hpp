@@ -11,7 +11,7 @@ private:
 
     //Matrix<Vector2d, Dynamic, Dynamic> hits;
 public:
-    explicit constexpr Surface(const Eigen::Vector3d& origin)
+    explicit Surface(const Eigen::Vector3d& origin)
         : m_origin{ origin }
         {}
     Eigen::Matrix<Eigen::Vector2d, Eigen::Dynamic, Eigen::Dynamic>

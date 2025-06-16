@@ -7,9 +7,9 @@
 #include <opencv2/opencv.hpp>
 #include <math.h>
 #include "Camera.hpp"
-#include "Surface.hpp"
 #include "Scene.hpp"
-
+#include "Object3D.hpp"
+/*
 cv::Mat eigenToCv(const Eigen::MatrixXd& eigenMat) {
     // Create an OpenCV matrix with the same dimensions as the Eigen matrix
     cv::Mat image(eigenMat.rows(), eigenMat.cols(), CV_8UC1); // 8-bit single-channel image
@@ -24,11 +24,28 @@ cv::Mat eigenToCv(const Eigen::MatrixXd& eigenMat) {
     return image;
 }
 
-
+*/
 
 int main() {
-    Scene<3, 3> szene(1,1); //in 3 Dimensional space 1 camera and 1 object (Surface in this case)
+    Scene<3> szene(1,1); //in 3 Dimensional space 1 camera and 1 object (Surface in this case)
+    szene.addcamera(std::make_unique<Camera<240, 180>>());
+    szene.addobject(std::make_unique<Plane>());
+    const Scene_constants::translation translation{ Scene_constants::translation::translation_left };
+    const Scene_constants::velocity velocity{ Scene_constants::velocity::fast };
+    const Scene_constants::camera_para storage_mode{ Scene_constants::camera_para::store_frameAndEvents };
+    szene.start_simulation(translation, velocity, storage_mode);
+    std::cout << "finished simulation ";
+    szene.visualizeEvents();
+    szene.visualizeFrames();
 
+
+
+
+
+
+
+
+    /*
     Surface plain(Eigen::Vector3d{ 0, 0, 0 });
     Camera camera1;
     // Get rays from the camera
@@ -68,5 +85,6 @@ int main() {
     std::cin >> c;
     
     return 0;
+    */
 }
 

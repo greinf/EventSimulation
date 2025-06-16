@@ -5,28 +5,75 @@ project(EventSimulation)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Enable folders in Visual Studio
+# Enable folders in Visual Studio for organization
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# Find vcpkg packages
-find_package(OpenCV REQUIRED)
-find_package(Eigen3 REQUIRED)
+# Important for Boost
+add_definitions(-D_WIN32_WINNT=0x0A00)  # Windows 10
 
-# Include directories
-include_directories(include)
-include_directories(${EIGEN3_INCLUDE_DIR})
-include_directories(${OpenCV_INCLUDE_DIRS})
+# Find packages from vcpkg
+find_package(OpenCV REQUIRED)
+find_package(fmt REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS 
+    nowide 
+    stacktrace_windbg 
+    callable_traits 
+    endian 
+    property_tree
+)
+
+# Add compression/decompression libraries
+find_package(lz4 REQUIRED)
+find_package(zstd REQUIRED)
+
+# Include paths for manually built libcaer
+set(LIBCAER_PATH "C:/Users/grein/Documents/libraries/_installed/libcaer")
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(LIBCAER_INCLUDE_DIR "${LIBCAER_PATH}/debug/include")
+    set(LIBCAER_LIB_DIR "${LIBCAER_PATH}/debug/lib")
+else()
+    set(LIBCAER_INCLUDE_DIR "${LIBCAER_PATH}/release/include")
+    set(LIBCAER_LIB_DIR "${LIBCAER_PATH}/release/lib")
+endif()
+
+link_directories(${LIBCAER_LIB_DIR})
 
 # Add executable target first!
 add_executable(EventSimulation
   src/main.cpp
   src/Surface.cpp
-  src/Plance.cpp
+  src/Plane.cpp
   src/Object.cpp
 )
 
-# Then link libraries to it
-target_link_libraries(EventSimulation PRIVATE
-  ${OpenCV_LIBS}
-  Eigen3::Eigen
+# Supress macro definition for max from the Windows headers
+target_compile_definitions(EventSimulation PRIVATE NOMINMAX)
+
+#Supress iterator warnings
+target_compile_definitions(EventSimulation PRIVATE _SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS)
+
+# Add include paths for just this target
+target_include_directories(EventSimulation PRIVATE
+    ${LIBCAER_INCLUDE_DIR}
+    "C:/Users/grein/Documents/libraries/dv-processing/include"
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+
+# Link libraries
+target_link_libraries(EventSimulation
+    PRIVATE
+        caer
+        ${OpenCV_LIBS}
+        fmt::fmt
+        Eigen3::Eigen
+        Boost::nowide
+        Boost::stacktrace_windbg
+        Boost::callable_traits
+        Boost::endian
+        Boost::property_tree
+        lz4::lz4
+        zstd::libzstd_shared
 )
